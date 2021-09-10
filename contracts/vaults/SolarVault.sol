@@ -22,10 +22,7 @@ contract SolarVault is BaseVault {
     address public constant solarRouter = 0xAA30eF758139ae4a7f798112902Bf6d65612045f;
     
     address public feeReceiver;
-    address public devAddr;
-
     uint256 public feeRate = 0;
-    uint256 public devRate = 0;
 
     uint256 public freePeriod = 0;
     uint256 public exitFeeRate = 0;
@@ -49,7 +46,6 @@ contract SolarVault is BaseVault {
         lpToken = _lpToken;
         solarMasterChefPid = _solarChefPid;
         feeReceiver = _feeReceiver;
-        devAddr = msg.sender;
         token0 = IUniswapV2Pair(lpToken).token0();
         token1 = IUniswapV2Pair(lpToken).token1();
         path0 = _path0;
@@ -69,7 +65,6 @@ contract SolarVault is BaseVault {
         uint256 solarAmount = IERC20(solarToken).balanceOf(address(this));
         if (solarAmount > 0) {
             IERC20(solarToken).safeTransfer(feeReceiver, solarAmount.mul(feeRate).div(100));
-            IERC20(solarToken).safeTransfer(devAddr, solarAmount.mul(devRate).div(100));
             solarAmount = IERC20(solarToken).balanceOf(address(this));
 
             if (path0.length > 0) {
@@ -129,11 +124,6 @@ contract SolarVault is BaseVault {
         feeRate = _rate;
     }
 
-    function setDevRate(uint256 _rate) public onlyOwner {
-        require(_rate <= 10, "invalid");
-        devRate = _rate;
-    }
-
     function setExitFeeRate(uint256 _rate) public onlyOwner {
         require(_rate <= 5, "invalid");
         exitFeeRate = _rate;
@@ -142,11 +132,6 @@ contract SolarVault is BaseVault {
     function setFreePeriod(uint256 _period) public onlyOwner {
         require(_period <= 15 days, "invalid period");
         freePeriod = _period;
-    }
-
-    function dev(address _dev) public {
-        require(msg.sender == devAddr || msg.sender == owner(), "dev: wut?");
-        devAddr = _dev;
     }
     
 }
