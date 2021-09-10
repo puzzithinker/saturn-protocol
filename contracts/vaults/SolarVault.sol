@@ -120,7 +120,7 @@ contract SolarVault is BaseVault {
     }
 
     function setFeeRate(uint256 _rate) public onlyOwner {
-        require(_rate <= 50, "invalid rate");
+        require(_rate <= 20, "invalid rate");
         feeRate = _rate;
     }
 
