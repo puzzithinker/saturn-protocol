@@ -51,9 +51,9 @@ contract SolarVault is BaseVault {
         path0 = _path0;
         path1 = _path1;
         IERC20(lpToken).approve(solarMasterChef, uint256(-1));
-        IERC20(solarToken).approve(solarMasterChef, uint256(-1));
-        IERC20(token0).approve(solarMasterChef, uint256(-1));
-        IERC20(token1).approve(solarMasterChef, uint256(-1));
+        IERC20(solarToken).approve(solarRouter, uint256(-1));
+        IERC20(token0).approve(solarRouter, uint256(-1));
+        IERC20(token1).approve(solarRouter, uint256(-1));
     }
 
     function _harvest() internal override {

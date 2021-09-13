@@ -51,9 +51,9 @@ contract MoonVault is BaseVault {
         path0 = _path0;
         path1 = _path1;
         IERC20(lpToken).approve(moonMasterChef, uint256(-1));
-        IERC20(moonToken).approve(moonMasterChef, uint256(-1));
-        IERC20(token0).approve(moonMasterChef, uint256(-1));
-        IERC20(token1).approve(moonMasterChef, uint256(-1));
+        IERC20(moonToken).approve(moonRouter, uint256(-1));
+        IERC20(token0).approve(moonRouter, uint256(-1));
+        IERC20(token1).approve(moonRouter, uint256(-1));
     }
 
     function _harvest() internal override {
