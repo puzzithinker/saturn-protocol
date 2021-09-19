@@ -6,10 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import '@openzeppelin/contracts/access/Ownable.sol';
 
-import "../interfaces/IMasterChef.sol";
-import "../interfaces/IVault.sol";
-import "../utils/TokenConverter.sol";
-
+import '../interfaces/IVault.sol';
 
 abstract contract BaseVault is IVault, ERC20, Ownable {
     using SafeMath for uint256;
@@ -17,13 +14,9 @@ abstract contract BaseVault is IVault, ERC20, Ownable {
 
     address public wantToken;
 
-    address public saturnMasterChef;
-    uint256 public saturnStakePid;
-
     address public emergencyOperator;
     bool public emergencyStop;  // stop deposit and invest, can only withdraw
 
-    mapping(address => uint256) private _shareBalances;
     mapping(address => uint256) public lastDepositTimes;
     
     constructor(
@@ -74,21 +67,17 @@ abstract contract BaseVault is IVault, ERC20, Ownable {
             shareAmount = amount.mul(totalSupply()).div(_totalTokenBalance());
         }
         
-        _mint(address(this), shareAmount);
-        IMasterChef(saturnMasterChef).deposit(msg.sender, saturnStakePid, shareAmount);
-        _shareBalances[msg.sender] = _shareBalances[msg.sender].add(shareAmount);
+        IERC20(wantToken).safeTransferFrom(msg.sender, address(this), amount);
+        _mint(msg.sender, shareAmount);
         lastDepositTimes[msg.sender] = block.timestamp;
         
-        IERC20(wantToken).safeTransferFrom(msg.sender, address(this), amount);
         _invest();
     }
 
-    function withdraw(uint256 amount) public override onlyEOA {
-        uint256 shareAmount = amount.mul(totalShareBalance()).div(_totalTokenBalance());
-        
-        IMasterChef(saturnMasterChef).withdraw(msg.sender, saturnStakePid, shareAmount);
-        _shareBalances[msg.sender] = _shareBalances[msg.sender].sub(shareAmount);
-        _burn(address(this), shareAmount);
+    function withdraw(uint256 shareAmount) public override onlyEOA {
+        uint256 amount = shareAmount.mul(_totalTokenBalance()).div(totalShareBalance());
+
+        _burn(msg.sender, shareAmount);
 
         uint256 localBalance = IERC20(wantToken).balanceOf(address(this));
         if (amount > localBalance) {
@@ -101,16 +90,11 @@ abstract contract BaseVault is IVault, ERC20, Ownable {
     }
 
     function withdrawAll() external override onlyEOA {
-        withdraw(tokenBalanceOf(msg.sender));
+        withdraw(shareBalanceOf(msg.sender));
     }
 
     // ============= GOV ===============================
 
-    function setsaturnStakePid(address _saturnMasterChef, uint256 _stakePid) public onlyOwner {
-        saturnMasterChef = _saturnMasterChef;
-        saturnStakePid = _stakePid;
-        _approve(address(this), saturnMasterChef, 10**60);
-    }
 
     function setEmergencyOperator(address _op) public onlyOwner {
         emergencyOperator = _op; 
@@ -140,7 +124,7 @@ abstract contract BaseVault is IVault, ERC20, Ownable {
     }
 
     function shareBalanceOf(address user) public view override returns (uint256) {
-        return _shareBalances[user];
+        return balanceOf(user);
     }
 
     function totalShareBalance() public view override returns (uint256) {
@@ -148,5 +132,4 @@ abstract contract BaseVault is IVault, ERC20, Ownable {
     }
 
 }
-
 
