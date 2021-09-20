@@ -99,7 +99,7 @@ contract MoonTokenVault is BaseVault {
         return IERC20(lpToken).balanceOf(address(this)).add(stakeAmount);
     }
 
-    function setPath(address[] calldata _path0, address[] calldata _path1) public onlyOwner {
+    function setPath(address[] calldata _path0, address[] calldata _path1) public onlyEmergencyOperator {
         path0 = _path0;
         path1 = _path1;
     }
