@@ -23,9 +23,20 @@ abstract contract BaseVault is IVault, ERC20, Ownable {
     address public emergencyOperator;
     bool public emergencyStop;  // stop deposit and invest, can only withdraw
 
+    bool public isDepositHarvest;
+    bool public isDepositInvest;
+    bool public isWithdrawHarvest;
+    bool public isWithdrawInvest;
+    uint256 public lastInvestTime;
+
     mapping(address => uint256) private _shareBalances;
     mapping(address => uint256) public lastDepositTimes;
     
+    mapping(address => uint256) public totalDepositAmounts;
+    mapping(address => uint256) public totalWithdrawAmounts;
+    mapping(address => uint256) public lastActionTimes;
+    mapping(address => uint256) public lastActionTokenBalances;
+
     constructor(
         string memory _name,
         string memory _symbol,
@@ -62,12 +73,15 @@ abstract contract BaseVault is IVault, ERC20, Ownable {
         _harvest();
         if (!emergencyStop) {
             _invest();
+            lastInvestTime = block.timestamp;
         }
     }
 
     function deposit(uint256 amount) external override onlyEOA {
         require(!emergencyStop, "emergencyStop");
-        _harvest();
+        if (isDepositHarvest) {
+            _harvest();
+        }
         
         uint256 shareAmount = amount;
         if (totalSupply() > 0 && _totalTokenBalance() > 0) {
@@ -80,10 +94,20 @@ abstract contract BaseVault is IVault, ERC20, Ownable {
         lastDepositTimes[msg.sender] = block.timestamp;
         
         IERC20(wantToken).safeTransferFrom(msg.sender, address(this), amount);
-        _invest();
+        if (isDepositInvest) {
+            _invest();
+            lastInvestTime = block.timestamp;
+        }
+
+        lastActionTimes[msg.sender] = block.timestamp;
+        lastActionTokenBalances[msg.sender] = tokenBalanceOf(msg.sender);
+        totalDepositAmounts[msg.sender] = totalDepositAmounts[msg.sender].add(amount); 
     }
 
     function withdraw(uint256 amount) public override onlyEOA {
+        if (isWithdrawHarvest) {
+            _harvest();
+        }
         uint256 shareAmount = amount.mul(totalShareBalance()).div(_totalTokenBalance());
         
         IMasterChef(saturnMasterChef).withdraw(msg.sender, saturnStakePid, shareAmount);
@@ -97,7 +121,16 @@ abstract contract BaseVault is IVault, ERC20, Ownable {
         }
             
         uint256 withdrawFee = _withdrawFee(amount, lastDepositTimes[msg.sender]);
-        IERC20(wantToken).safeTransfer(msg.sender, amount.sub(withdrawFee));        
+        IERC20(wantToken).safeTransfer(msg.sender, amount.sub(withdrawFee));
+
+        if (isWithdrawInvest) {
+            _invest();
+            lastInvestTime = block.timestamp;
+        }  
+
+        lastActionTimes[msg.sender] = block.timestamp;
+        lastActionTokenBalances[msg.sender] = tokenBalanceOf(msg.sender);
+        totalWithdrawAmounts[msg.sender] = totalWithdrawAmounts[msg.sender].add(amount);       
     }
 
     function withdrawAll() external override onlyEOA {
@@ -106,7 +139,7 @@ abstract contract BaseVault is IVault, ERC20, Ownable {
 
     // ============= GOV ===============================
 
-    function setsaturnStakePid(address _saturnMasterChef, uint256 _stakePid) public onlyOwner {
+    function setSaturnStakePid(address _saturnMasterChef, uint256 _stakePid) public onlyOwner {
         saturnMasterChef = _saturnMasterChef;
         saturnStakePid = _stakePid;
         _approve(address(this), saturnMasterChef, 10**60);
@@ -114,6 +147,18 @@ abstract contract BaseVault is IVault, ERC20, Ownable {
 
     function setEmergencyOperator(address _op) public onlyOwner {
         emergencyOperator = _op; 
+    }
+
+    function setIfHarvestInvest(
+        bool _isDepositHarvest, 
+        bool _isDepositInvest,
+        bool _isWithdrawHarvest,
+        bool _isWithdrawInvest
+    ) public onlyOwner {
+        isDepositHarvest = _isDepositHarvest;
+        isDepositInvest = _isDepositInvest;
+        isWithdrawHarvest = _isWithdrawHarvest;
+        isWithdrawInvest = _isWithdrawInvest;
     }
 
     // ============  EMERGENCY GOV =======================

@@ -57,9 +57,9 @@ contract MoonVault is BaseVault {
     }
 
     function _harvest() internal override {
-        (uint256 stakeAmount, ) = ISolarMasterChef(moonMasterChef).userInfo(moonMasterChefPid, address(this));
+        (uint256 stakeAmount, ) = IMoonMasterChef(moonMasterChef).userInfo(moonMasterChefPid, address(this));
         if (stakeAmount > 0) {
-            ISolarMasterChef(moonMasterChef).withdraw(moonMasterChefPid, 0);
+            IMoonMasterChef(moonMasterChef).withdraw(moonMasterChefPid, 0);
         }
 
         uint256 moonAmount = IERC20(moonToken).balanceOf(address(this));
@@ -83,17 +83,17 @@ contract MoonVault is BaseVault {
     function _invest() internal override {
         uint256 lpAmount = IERC20(lpToken).balanceOf(address(this));
         if (lpAmount > 0) {
-            ISolarMasterChef(moonMasterChef).deposit(moonMasterChefPid, lpAmount);
+            IMoonMasterChef(moonMasterChef).deposit(moonMasterChefPid, lpAmount);
         }
 
     }
 
     function _exit() internal override {
-        ISolarMasterChef(moonMasterChef).emergencyWithdraw(moonMasterChefPid);
+        IMoonMasterChef(moonMasterChef).emergencyWithdraw(moonMasterChefPid);
     }
 
     function _exitSome(uint256 _amount) internal override {
-        ISolarMasterChef(moonMasterChef).withdraw(moonMasterChefPid, _amount);
+        IMoonMasterChef(moonMasterChef).withdraw(moonMasterChefPid, _amount);
     }
 
     function _withdrawFee(uint256 _withdrawAmount, uint256 _lastDepositTime) internal override returns (uint256) {
@@ -106,7 +106,7 @@ contract MoonVault is BaseVault {
     }
 
     function _totalTokenBalance() internal view override returns (uint256) {
-        (uint256 stakeAmount, ) = ISolarMasterChef(moonMasterChef).userInfo(moonMasterChefPid, address(this));
+        (uint256 stakeAmount, ) = IMoonMasterChef(moonMasterChef).userInfo(moonMasterChefPid, address(this));
         return IERC20(lpToken).balanceOf(address(this)).add(stakeAmount);
     }
 
@@ -137,7 +137,7 @@ contract MoonVault is BaseVault {
 }
 
 
-interface ISolarMasterChef {
+interface IMoonMasterChef {
     function userInfo(uint256 pid, address user) external view returns (uint256, uint256); 
     function deposit(uint256 _pid, uint256 _amount) external;
     function withdraw(uint256 _pid, uint256 _amount) external;

@@ -8,7 +8,7 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 
 import '../interfaces/IVault.sol';
 
-abstract contract BaseVault is IVault, ERC20, Ownable {
+abstract contract BaseVaultV0 is IVault, ERC20, Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
