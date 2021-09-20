@@ -48,13 +48,7 @@ contract MasterChef is Ownable {
     }
     // The REWARD TOKEN!
     address public rewardMinter;
-    // DEV and OPERATION FUND
-    uint256 public constant DEV_FUND_RATE = 10;
-    uint256 public constant OP_FUND_RATE = 5;
-    // Dev address.
-    address public devaddr;
-    // Op fund address
-    address public opAddr;
+
     // Info of each pool.
     PoolInfo[] public poolInfo;
     // Info of each user that stakes LP tokens.
@@ -81,8 +75,6 @@ contract MasterChef is Ownable {
         address _reward
     ) public {
         rewardMinter = _reward;
-        devaddr = msg.sender;
-        opAddr = msg.sender;
     }
 
     function poolLength() external view returns (uint256) {
@@ -190,7 +182,7 @@ contract MasterChef is Ownable {
                     totalAllocPoint
                 );
             accRewardPerShare = accRewardPerShare.add(
-                rewardReward.mul(uint256(100).sub(DEV_FUND_RATE).sub(OP_FUND_RATE)).div(100).mul(1e12).div(lpSupply)
+                rewardReward.mul(1e12).div(lpSupply)
             );
         }
         return user.amount.mul(accRewardPerShare).div(1e12).sub(user.rewardDebt);
@@ -219,13 +211,9 @@ contract MasterChef is Ownable {
                 getRewardRate(pool.lastRewardTimestamp, block.timestamp).mul(pool.allocPoint).div(
                     totalAllocPoint
                 );
-        IRewardMinter(rewardMinter).mint(devaddr, rewardReward.mul(DEV_FUND_RATE).div(100),
-            pool.lastRewardTimestamp, block.timestamp);
-        IRewardMinter(rewardMinter).mint(opAddr, rewardReward.mul(OP_FUND_RATE).div(100),
-            pool.lastRewardTimestamp, block.timestamp);
         
         pool.accRewardPerShare = pool.accRewardPerShare.add(
-            rewardReward.mul(uint256(100).sub(DEV_FUND_RATE).sub(OP_FUND_RATE)).div(100).mul(1e12).div(lpSupply)
+            rewardReward.mul(1e12).div(lpSupply)
         );
         pool.lastRewardTimestamp = block.timestamp;
     }
@@ -308,20 +296,6 @@ contract MasterChef is Ownable {
     function setRewardMinter(address _minter) public onlyOwner {
         rewardMinter = _minter;
     }
-
-    // dev
-    function dev(address _dev) public {
-        require(msg.sender == devaddr || msg.sender == owner(), "dev: wut?");
-        devaddr = _dev;
-    }
-
-
-    // op
-    function opFund(address _op) public {
-        require(msg.sender == opAddr || msg.sender == owner(), "op: wut?");
-        opAddr = _op;
-    }
-
 
 
 }
