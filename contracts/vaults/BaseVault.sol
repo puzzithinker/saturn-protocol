@@ -20,7 +20,7 @@ abstract contract BaseVault is IVault, ERC20, Ownable {
     address public saturnMasterChef;
     uint256 public saturnStakePid;
 
-    address public emergencyOperator;
+    address public operator;
     bool public emergencyStop;  // stop deposit and invest, can only withdraw
 
     bool public isDepositHarvest;
@@ -36,6 +36,8 @@ abstract contract BaseVault is IVault, ERC20, Ownable {
     mapping(address => uint256) public totalWithdrawAmounts;
     mapping(address => uint256) public lastActionTimes;
     mapping(address => uint256) public lastActionTokenBalances;
+    uint256 totalDepositAmount;
+    uint256 totalWithdrawAmount;
 
     constructor(
         string memory _name,
@@ -43,11 +45,11 @@ abstract contract BaseVault is IVault, ERC20, Ownable {
         address _wantToken
     ) public ERC20(_name, _symbol) {
         wantToken = _wantToken;
-        emergencyOperator = msg.sender;
+        operator = msg.sender;
     }
 
-    modifier onlyEmergencyOperator {
-        require (msg.sender == emergencyOperator, "no operator");
+    modifier onlyOperator {
+        require (msg.sender == operator || msg.sender == owner(), "no operator");
 
         _;
     }
@@ -101,7 +103,8 @@ abstract contract BaseVault is IVault, ERC20, Ownable {
 
         lastActionTimes[msg.sender] = block.timestamp;
         lastActionTokenBalances[msg.sender] = tokenBalanceOf(msg.sender);
-        totalDepositAmounts[msg.sender] = totalDepositAmounts[msg.sender].add(amount); 
+        totalDepositAmounts[msg.sender] = totalDepositAmounts[msg.sender].add(amount);
+        totalDepositAmount = totalDepositAmount.add(amount);
     }
 
     function withdraw(uint256 amount) public override onlyEOA {
@@ -130,7 +133,8 @@ abstract contract BaseVault is IVault, ERC20, Ownable {
 
         lastActionTimes[msg.sender] = block.timestamp;
         lastActionTokenBalances[msg.sender] = tokenBalanceOf(msg.sender);
-        totalWithdrawAmounts[msg.sender] = totalWithdrawAmounts[msg.sender].add(amount);       
+        totalWithdrawAmounts[msg.sender] = totalWithdrawAmounts[msg.sender].add(amount);
+        totalWithdrawAmount = totalDepositAmount.add(amount);    
     }
 
     function withdrawAll() external override onlyEOA {
@@ -146,7 +150,7 @@ abstract contract BaseVault is IVault, ERC20, Ownable {
     }
 
     function setEmergencyOperator(address _op) public onlyOwner {
-        emergencyOperator = _op; 
+        operator = _op; 
     }
 
     function setIfHarvestInvest(
@@ -154,7 +158,7 @@ abstract contract BaseVault is IVault, ERC20, Ownable {
         bool _isDepositInvest,
         bool _isWithdrawHarvest,
         bool _isWithdrawInvest
-    ) public onlyOwner {
+    ) public onlyOperator {
         isDepositHarvest = _isDepositHarvest;
         isDepositInvest = _isDepositInvest;
         isWithdrawHarvest = _isWithdrawHarvest;
@@ -163,12 +167,12 @@ abstract contract BaseVault is IVault, ERC20, Ownable {
 
     // ============  EMERGENCY GOV =======================
 
-    function stop() public virtual onlyEmergencyOperator {
+    function stop() public virtual onlyOperator {
         emergencyStop = true;
         _exit();
     }
 
-    function start() public virtual onlyEmergencyOperator {
+    function start() public virtual onlyOperator {
         emergencyStop = false;
     }
 
