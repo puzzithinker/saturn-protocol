@@ -9,7 +9,7 @@ contract SaturnToken is ERC20, Ownable {
     mapping (address => uint256) public minterBalances;
     uint256 public totalMinterBalance;
 
-    address public emergencyOperator;
+    address public operator;
 
     event SetMinter(address indexed minter, uint256 balance);
 
@@ -19,7 +19,7 @@ contract SaturnToken is ERC20, Ownable {
         uint256 mintAmount
     ) public ERC20(name, symbol) {
         _mint(msg.sender, mintAmount);
-        emergencyOperator = msg.sender;
+        operator = msg.sender;
     }
 
     // BEP20
@@ -53,11 +53,13 @@ contract SaturnToken is ERC20, Ownable {
     }
 
     function setEmergencyOperator(address _op) public onlyOwner {
-        emergencyOperator = _op;
+        operator = _op;
     }
 
     function emergencyRemoveMinter(address _minter) public {
+        require(msg.sender == operator || msg.sender == owner(), "no operator");
         totalMinterBalance = totalMinterBalance.sub(minterBalances[_minter]);
+        minterBalances[_minter] = 0;
         emit SetMinter(_minter, 0);
     }
 
