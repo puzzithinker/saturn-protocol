@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 import "./interfaces/IRewardMinter.sol";
 
-contract RewardMinter is Ownable {
+contract RewardLocker is Ownable {
 
     using SafeMath for uint256;
     using SafeERC20 for IERC20;

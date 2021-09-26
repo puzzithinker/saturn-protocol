@@ -6,6 +6,8 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 
 contract SaturnToken is ERC20, Ownable {
 
+    uint256 public constant MAX_SUPPLY = 1000000e18;
+
     mapping (address => uint256) public minterBalances;
     uint256 public totalMinterBalance;
 
@@ -36,6 +38,7 @@ contract SaturnToken is ERC20, Ownable {
         minterBalances[msg.sender] = minterBalances[msg.sender].sub(amount_);
         totalMinterBalance = totalMinterBalance.sub(amount_);
         _mint(recipient_, amount_);
+        require(totalSupply() <= MAX_SUPPLY, "max supply");
     }
 
     function burn(address account, uint256 amount)
