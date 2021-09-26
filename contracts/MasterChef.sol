@@ -274,7 +274,7 @@ contract MasterChef is Ownable {
         require(user.amount > 0, "nothing to harvest");
         uint256 pending = user.amount.mul(pool.accRewardPerShare).div(1e12).sub(user.rewardDebt);
         if (pending > 0) {
-            IRewardMinter(rewardMinter).mint(_to, pending, user.lastRewardTimestamp, _pid);
+            IRewardMinter(rewardMinter).mint(_to, pending, _pid);
             user.lastRewardTimestamp = block.timestamp;
         }
     }
