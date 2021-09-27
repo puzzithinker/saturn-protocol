@@ -16,7 +16,7 @@ contract RewardLocker {
         uint192 amount;
     }
 
-    uint256 public constant PERIOD = 3 * 24 * 3600;
+    uint256 public PERIOD = 3 * 24 * 3600;
 
     address public token;
     mapping(address => mapping(uint256 => RewardVest)) public vests;
@@ -27,8 +27,8 @@ contract RewardLocker {
     mapping(address => bool) public ops; 
     address public owner;
 
-    constructor(address _token) public {
-        token = _token;
+    constructor() public {
+        owner = msg.sender;
     }
 
     modifier onlyOwner {
@@ -37,7 +37,8 @@ contract RewardLocker {
         _;
     }
 
-    function setNewOwner(address _owner) public onlyOwner {
+    function setOwner(address _owner) public {
+        require(owner == address(0) || msg.sender == owner, "no owner");
         owner = _owner;
     }
 
@@ -48,6 +49,11 @@ contract RewardLocker {
     function setToken(address _token) public onlyOwner{
         token = _token;
     }
+
+    function setPeriod(uint256 _period) public onlyOwner {
+        PERIOD = _period;
+    }
+    
 
     function mint(address to, uint256 amount, uint256 pid) public {
         require(ops[msg.sender], "no ops");
