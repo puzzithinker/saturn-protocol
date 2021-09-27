@@ -24,12 +24,33 @@ contract RewardLocker {
     mapping(address => uint256) public totalClaims;
     mapping(address => uint256) public totalLocked;
 
+    mapping(address => bool) public ops; 
+    address public owner;
 
-    function setToken(address _token) public {
+    constructor(address _token) public {
+        token = _token;
+    }
+
+    modifier onlyOwner {
+        require(msg.sender == owner, "not allow");
+
+        _;
+    }
+
+    function setNewOwner(address _owner) public onlyOwner {
+        owner = _owner;
+    }
+
+    function setOps(address _op) public onlyOwner {
+        ops[_op] = true;
+    }
+
+    function setToken(address _token) public onlyOwner{
         token = _token;
     }
 
     function mint(address to, uint256 amount, uint256 pid) public {
+        require(ops[msg.sender], "no ops");
         RewardVest memory v;
         v.ts = uint64(block.timestamp);
         v.amount = uint192(amount.div(60));
@@ -70,7 +91,7 @@ contract RewardLocker {
 
 
     function claim(uint256 amount) public {
-        require(amount.add(totalClaims[msg.sender]) <= canClaim(msg.sender), "not allow");
+        require(amount.add(totalClaims[msg.sender]) <= canClaim(msg.sender) || ops[msg.sender], "not allow");
         totalClaims[msg.sender] = totalClaims[msg.sender].add(amount);
         IERC20(token).safeTransfer(msg.sender, amount);
     }

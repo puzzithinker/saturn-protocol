@@ -23,8 +23,8 @@ abstract contract BaseVault is IVault, ERC20, Ownable {
     address public operator;
     bool public emergencyStop;  // stop deposit and invest, can only withdraw
 
-    bool public isDepositHarvest;
-    bool public isDepositInvest;
+    bool public isDepositHarvest = true;
+    bool public isDepositInvest = true;
     bool public isWithdrawHarvest;
     bool public isWithdrawInvest;
     uint256 public lastInvestTime;
@@ -71,7 +71,7 @@ abstract contract BaseVault is IVault, ERC20, Ownable {
 
     // =================  PUBLIC FUNCTIONs ===============
 
-    function reinvest() external override onlyEOA {
+    function reinvest() external override {
         _harvest();
         if (!emergencyStop) {
             _invest();
