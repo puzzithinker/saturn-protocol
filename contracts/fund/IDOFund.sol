@@ -12,8 +12,8 @@ contract IDOFund is Ownable {
 
     address public token;
     uint256 public starttime;
-    mapping(address => uint256) totalAmounts;
-    mapping(address => uint256) totalClaims;
+    mapping(address => uint256) public totalAmounts;
+    mapping(address => uint256) public totalClaims;
     uint256 public totalAmount;
     uint256 public constant MAX_AMOUNT = 50000e18;
 
