@@ -134,7 +134,7 @@ abstract contract BaseVault is IVault, ERC20, Ownable {
         lastActionTimes[msg.sender] = block.timestamp;
         lastActionTokenBalances[msg.sender] = tokenBalanceOf(msg.sender);
         totalWithdrawAmounts[msg.sender] = totalWithdrawAmounts[msg.sender].add(amount);
-        totalWithdrawAmount = totalDepositAmount.add(amount);    
+        totalWithdrawAmount = totalWithdrawAmount.add(amount);    
     }
 
     function withdrawAll() external override onlyEOA {
