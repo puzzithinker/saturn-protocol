@@ -12,15 +12,20 @@ contract IDOFund is Ownable {
 
     address public token;
     uint256 public starttime;
+    bool public startClaim;
+
     mapping(address => uint256) public totalAmounts;
     mapping(address => uint256) public totalClaims;
     uint256 public totalAmount;
     uint256 public constant MAX_AMOUNT = 50000e18;
 
-    function start(address _token, uint256 _starttime) public onlyOwner {
-        require(starttime == 0, "already set");
+    function set(address _token, uint256 _starttime) public onlyOwner {
         token = _token;
         starttime = _starttime;
+    }
+
+    function setStart(bool _start) public onlyOwner {
+        startClaim = _start;
     }
 
     function batchSetAmount(address[] calldata tos, uint256[] calldata amounts) public onlyOwner {
@@ -69,6 +74,7 @@ contract IDOFund is Ownable {
     }
 
     function claim(uint256 amount) public {
+        require(startClaim, "not started");
         require(amount <= unlockedAmount(msg.sender), "not allowed amount");
         totalClaims[msg.sender] = totalClaims[msg.sender].add(amount);
         IERC20(token).safeTransfer(msg.sender, amount);
