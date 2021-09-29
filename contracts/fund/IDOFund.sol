@@ -19,6 +19,8 @@ contract IDOFund is Ownable {
     uint256 public totalAmount;
     uint256 public constant MAX_AMOUNT = 50000e18;
 
+    address public operator;
+
     function set(address _token, uint256 _starttime) public onlyOwner {
         token = _token;
         starttime = _starttime;
@@ -28,7 +30,12 @@ contract IDOFund is Ownable {
         startClaim = _start;
     }
 
-    function batchSetAmount(address[] calldata tos, uint256[] calldata amounts) public onlyOwner {
+    function setOperator(address _op) public onlyOwner {
+        operator = _op;
+    }
+
+    function batchSetAmount(address[] calldata tos, uint256[] calldata amounts) public {
+        require(msg.sender == operator, "no operator");
         uint256 i;
         require(tos.length == amounts.length);
         for (i = 0; i < tos.length; i++) {
