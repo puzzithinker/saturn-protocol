@@ -17,7 +17,7 @@ contract IDOFund is Ownable {
     mapping(address => uint256) public totalAmounts;
     mapping(address => uint256) public totalClaims;
     uint256 public totalAmount;
-    uint256 public constant MAX_AMOUNT = 50000e18;
+    uint256 public constant MAX_AMOUNT = 50010e18;
 
     address public operator;
 
