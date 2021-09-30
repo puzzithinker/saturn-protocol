@@ -16,8 +16,6 @@ contract IDOFund is Ownable {
 
     mapping(address => uint256) public totalAmounts;
     mapping(address => uint256) public totalClaims;
-    uint256 public totalAmount;
-    uint256 public constant MAX_AMOUNT = 50010e18;
 
     address public operator;
 
@@ -40,9 +38,7 @@ contract IDOFund is Ownable {
         require(tos.length == amounts.length);
         for (i = 0; i < tos.length; i++) {
             totalAmounts[tos[i]] = amounts[i];
-            totalAmount = totalAmount.add(amounts[i]);
         }
-        require(totalAmount <= MAX_AMOUNT, "error");
     }
 
     function freeAmountAt(address user, uint256 ts) public view returns(uint256) {
