@@ -298,7 +298,11 @@ contract OneSwapLpVault is ERC20 {
             farmAmount = IERC20(farmToken).balanceOf(address(this));
 
             if (path0.length > 0) {
-                IUniswapV2Router01(farmRouter).swapExactTokensForTokens(farmAmount.div(2), 1, path0, address(this), block.timestamp);
+                uint256 swapFarmAmount = farmAmount.div(2);
+                if (path1.length == 0) {
+                    swapFarmAmount = farmAmount;
+                }
+                IUniswapV2Router01(farmRouter).swapExactTokensForTokens(swapFarmAmount, 1, path0, address(this), block.timestamp);
             }
             if (path1.length > 0) {
                 IUniswapV2Router01(farmRouter).swapExactTokensForTokens(farmAmount.div(2), 1, path1, address(this), block.timestamp);
@@ -310,7 +314,7 @@ contract OneSwapLpVault is ERC20 {
             if (path2.length > 0) {
                 uint256[] memory amounts = new uint256[](path2.length);
                 for (uint256 i = 0; i < path2.length; i++) {
-                    amounts[i] = IERC20(path1[i]).balanceOf(address(this));
+                    amounts[i] = IERC20(path2[i]).balanceOf(address(this));
                 }
                 IOneSwapRouter(oneSwapRouter).addLiquidity(amounts, 1, block.timestamp);   
             }
